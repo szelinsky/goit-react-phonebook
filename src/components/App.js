@@ -21,13 +21,36 @@ const INITIAL_STATE = {
 class App extends Component {
   state = { ...INITIAL_STATE };
 
+  componentDidMount() {
+    if (localStorage.getItem('contacts') === null) {
+      localStorage.setItem(
+        'contacts',
+        JSON.stringify([...this.state.contacts])
+      );
+    } else {
+      this.setState({
+        contacts: JSON.parse(localStorage.getItem('contacts'))
+      })
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.contacts.length !== this.state.contacts.length) {
+      console.log('contacts state has changed.');
+      localStorage.setItem(
+        'contacts',
+        JSON.stringify([...this.state.contacts])
+      );
+    }
+  }
+
   addContactWithId = () => {
     const { name, number } = this.state;
     return { name, number, id: shortId() };
   };
 
   preventDublication = () => {
-    const {contacts, name} = this.state
+    const { contacts, name } = this.state;
     return contacts.some(elem => elem.name === name);
   };
 
@@ -38,8 +61,8 @@ class App extends Component {
     } else {
       this.setState(prev => {
         return {
-          contacts: [...prev.contacts, this.addContactWithId()], 
-          name: '', 
+          contacts: [...prev.contacts, this.addContactWithId()],
+          name: '',
           number: ''
         };
       });
@@ -55,19 +78,23 @@ class App extends Component {
     const { value } = evt.target;
     this.setState({
       filter: value.toLowerCase(),
-      filteredArr: [...this.state.contacts.filter(elem =>
-        elem.name.toLowerCase().includes(value))]
-      });
+      filteredArr: [
+        ...this.state.contacts.filter(elem =>
+          elem.name.toLowerCase().includes(value)
+        )
+      ]
+    });
   };
 
   deleteContact = id => {
     this.setState(prev => ({
       contacts: prev.contacts.filter(elem => elem.id !== id),
-      filteredArr: prev.filteredArr.filter(elem => elem.id !== id),
+      filteredArr: prev.filteredArr.filter(elem => elem.id !== id)
     }));
   };
 
   render() {
+    console.log('render');
     const { contacts, filter, filteredArr } = this.state;
     return (
       <>
@@ -82,11 +109,11 @@ class App extends Component {
 
         <Section title="Contacts">
           <Filter findContact={this.findContact} filterValue={filter} />
-          {!filter ?  
-         ( <Contacts data={contacts} deleteContact={this.deleteContact} />) : (<Contacts data={filteredArr} deleteContact={this.deleteContact} /> )
-          }
-          {/* {console.log('filteredArr', filteredArr)} */}
-          
+          {!filter ? (
+            <Contacts data={contacts} deleteContact={this.deleteContact} />
+          ) : (
+            <Contacts data={filteredArr} deleteContact={this.deleteContact} />
+          )}
         </Section>
       </>
     );
